@@ -2,12 +2,18 @@ import math
 import sys
 
 
-MAX_COEFFICIENT = 10000
+MAX_COEFFICIENT = 20000
+MAX_NUMBERS = 20
+MAX_ABS_VALUE = 10000
+NOT_EXISTS = "НЕ СУЩЕСТВУЕТ"
+MAX_TERMS = 10000
+MAX_STEPS = 100000
+MAX_EPS = 0.0001
 
 
 def print_help():
     """Вывод справки."""
-    print("Решение алгебраических уравнений")
+    print("Решение алгебраических уравнений и статистика последовательности")
     print()
     print("Уравнение:")
     print("  A*x^2 + B*x + C = 0")
@@ -25,13 +31,22 @@ def print_help():
     print("  python mathtool.py solve -a 1 -b -3 -c 2")
     print("      решение с заданными коэффициентами")
     print()
-    print("Допустимые значения коэффициентов:")
-    print("  целые числа от -10000 до 10000")
+    print("  python mathtool.py stats")
+    print("      показатели чисел, прочитанных со стандартного ввода")
+    print("      (из конвейера или с клавиатуры; конец ввода: Ctrl+D / Ctrl+Z)")
+    print()
+    print("  python mathtool.py stats --input numbers.txt")
+    print("      показатели чисел, прочитанных из файла")
+    print()
 
 
 def is_valid_coefficient(value):
     """Проверка допустимого диапазона коэффициента."""
-    return -MAX_COEFFICIENT <= value <= MAX_COEFFICIENT
+    if abs(value) > MAX_COEFFICIENT:
+        return True
+    else:
+        return False
+    # return -MAX_COEFFICIENT <= value <= MAX_COEFFICIENT
 
 
 def read_coefficient(name):
@@ -46,10 +61,10 @@ def read_coefficient(name):
         # return None
         sys.exit(1)
 
-    if not is_valid_coefficient(value):
+    if is_valid_coefficient(value):
         print(
             f"Ошибка: значение вне допустимого диапазона. "
-            f"Коэффициент {name} должен находиться в диапазоне [-10000; 10000].",
+            f"Коэффициент {name} должен находиться в диапазоне [{-MAX_COEFFICIENT}; {MAX_COEFFICIENT}].",
             file=sys.stderr
         )
         # return None
@@ -171,10 +186,10 @@ def parse_arguments(args):
             )
             sys.exit(1)
 
-        if not is_valid_coefficient(value):
+        if is_valid_coefficient(value):
             print(
                 f"Ошибка: коэффициент {parameter} должен находиться "
-                f"в диапазоне [-10000; 10000].",
+                f"в диапазоне[{-MAX_COEFFICIENT}]; [{MAX_COEFFICIENT}].",
                 file=sys.stderr
             )
             sys.exit(1)
@@ -201,6 +216,7 @@ def parse_arguments(args):
     return values["-a"], values["-b"], values["-c"]
 
 
+
 def main():
     """Главная функция программы."""
 
@@ -215,6 +231,18 @@ def main():
     if len(args) == 1 and args[0] == "--help":
         print_help()
         return 0
+
+    # python mathtool.py stats [--input FILE]
+    if args[0] == "stats":
+        return run_stats(args[1:])
+
+    # python mathtool.py series --func ИМЯ (--terms N | --eps E)
+    if args[0] == "series":
+        return run_series(args[1:])
+
+    # python mathtool.py integrate --func ИМЯ --from A --to B --steps N
+    if args[0] == "integrate":
+        return run_integrate(args[1:])
 
     # Неизвестная команда
     if args[0] != "solve":
@@ -257,4 +285,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
